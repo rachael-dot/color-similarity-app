@@ -10,7 +10,7 @@ describe('Color Similarity App', () => {
 
   test('renders subtitle', () => {
     render(<App />);
-    const subtitle = screen.getByText(/Enter a color to see similar shades and variations/i);
+    const subtitle = screen.getByText(/Enter a hex code or color name to see similar shades and variations/i);
     expect(subtitle).toBeInTheDocument();
   });
 
@@ -56,12 +56,25 @@ describe('Color Similarity App', () => {
     expect(colorInput.value).toBe('#ff0000');
   });
 
-  test('limits text input to 7 characters', () => {
+  test('allows various input formats', () => {
     render(<App />);
     const colorInput = screen.getByRole('textbox');
     
     fireEvent.change(colorInput, { target: { value: '#ff00001234' } });
-    expect(colorInput.value.length).toBeLessThanOrEqual(7);
+    // Input now accepts color names and hex codes without length restriction
+    expect(colorInput.value).toBe('#ff00001234');
+  });
+
+  test('accepts color names as input', () => {
+    render(<App />);
+    const colorInput = screen.getByRole('textbox');
+    
+    fireEvent.change(colorInput, { target: { value: 'red' } });
+    expect(colorInput.value).toBe('red');
+    
+    // Should generate similar colors for red
+    const colorCards = screen.getAllByText(/Lighter|Light|Original|Dark|Darker/);
+    expect(colorCards.length).toBeGreaterThan(0);
   });
 
   test('displays color variation names', () => {

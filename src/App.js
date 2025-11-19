@@ -1,9 +1,17 @@
 import React, { useState } from 'react';
 import './App.css';
+import colorNameList from 'color-name-list';
 
 function App() {
   const [inputColor, setInputColor] = useState('#3498db');
   const [similarColors, setSimilarColors] = useState([]);
+  const [error, setError] = useState('');
+
+  const colorNameToHex = (name) => {
+    const lowerName = name.toLowerCase().trim();
+    const color = colorNameList.find(c => c.name.toLowerCase() === lowerName);
+    return color ? color.hex : null;
+  };
 
   const hexToRgb = (hex) => {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -136,11 +144,23 @@ function App() {
   };
 
   const handleInputChange = (e) => {
-    const color = e.target.value;
-    if (/^#[0-9A-F]{6}$/i.test(color) || color.length <= 7) {
-      setInputColor(color);
-      if (/^#[0-9A-F]{6}$/i.test(color)) {
-        setSimilarColors(generateSimilarColors(color));
+    const input = e.target.value;
+    setInputColor(input);
+    setError('');
+    
+    // Check if it's a hex color
+    if (/^#[0-9A-F]{6}$/i.test(input)) {
+      setSimilarColors(generateSimilarColors(input));
+    } 
+    // Check if it's a valid color name
+    else if (input.length > 2 && !/^#/.test(input)) {
+      const hex = colorNameToHex(input);
+      if (hex) {
+        setSimilarColors(generateSimilarColors(hex));
+        setError('');
+      } else {
+        setSimilarColors([]);
+        setError('Color name not recognized. Try names like "red", "blue", "coral", etc.');
       }
     }
   };
@@ -153,7 +173,7 @@ function App() {
     <div className="App">
       <div className="container">
         <h1>Color Similarity Finder</h1>
-        <p className="subtitle">Enter a color to see similar shades and variations</p>
+        <p className="subtitle">Enter a hex code or color name to see similar shades and variations</p>
         
         <div className="input-section">
           <div className="color-input-group">
@@ -167,11 +187,11 @@ function App() {
               type="text"
               value={inputColor}
               onChange={handleInputChange}
-              placeholder="#3498db"
+              placeholder="e.g., #3498db or 'blue'"
               className="color-text-input"
-              maxLength="7"
             />
           </div>
+          {error && <p className="error-message">{error}</p>}
         </div>
 
         <div className="colors-grid">

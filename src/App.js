@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './App.css';
-import colorNameList from 'color-name-list';
+import { colornames as colorNameList } from 'color-name-list';
 
 function App() {
   const [inputColor, setInputColor] = useState('#3498db');

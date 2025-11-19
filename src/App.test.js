@@ -1,6 +1,14 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import App from './App';
 
+jest.mock('color-name-list', () => ({
+  colornames: [
+    { name: 'red', hex: '#FF0000' },
+    { name: 'blue', hex: '#0000FF' },
+    { name: 'green', hex: '#00FF00' }
+  ]
+}));
+
 describe('Color Similarity App', () => {
   test('renders the app title', () => {
     render(<App />);

@@ -147,11 +147,11 @@ function App() {
     const input = e.target.value;
     setInputColor(input);
     setError('');
-    
+
     // Check if it's a hex color
     if (/^#[0-9A-F]{6}$/i.test(input)) {
       setSimilarColors(generateSimilarColors(input));
-    } 
+    }
     // Check if it's a valid color name
     else if (input.length > 2 && !/^#/.test(input)) {
       const hex = colorNameToHex(input);
@@ -162,6 +162,10 @@ function App() {
         setSimilarColors([]);
         setError('Color name not recognized. Try names like "red", "blue", "coral", etc.');
       }
+    }
+    // Clear colors if input is invalid (e.g., malformed hex or short string)
+    else {
+      setSimilarColors([]);
     }
   };
 

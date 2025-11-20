@@ -36,24 +36,48 @@ function App() {
 
     const colors = [];
     const seen = new Set();
-    
-    const addColor = (name, hex) => {
+
+    const addColor = (name, hex, isOriginal = false) => {
       if (!seen.has(hex)) {
         seen.add(hex);
         colors.push({ name, hex });
+      } else if (isOriginal) {
+        // If it's the original color but already exists, replace the first occurrence with "Original"
+        const index = colors.findIndex(c => c.hex === hex);
+        if (index !== -1) {
+          colors[index] = { name, hex };
+        }
       }
     };
 
     const variations = [
-      { name: 'Lighter', factor: 1.3 },
-      { name: 'Light', factor: 1.15 },
+      { name: 'Lighter', lighten: 0.3 },
+      { name: 'Light', lighten: 0.15 },
       { name: 'Original', factor: 1 },
-      { name: 'Dark', factor: 0.85 },
-      { name: 'Darker', factor: 0.7 },
+      { name: 'Dark', darken: 0.15 },
+      { name: 'Darker', darken: 0.3 },
     ];
 
-    variations.forEach(({ name, factor }) => {
-      addColor(name, rgbToHex(rgb.r * factor, rgb.g * factor, rgb.b * factor));
+    variations.forEach(({ name, factor, lighten, darken }) => {
+      let r, g, b;
+      if (lighten) {
+        // Blend with white for lighter variations
+        r = rgb.r + (255 - rgb.r) * lighten;
+        g = rgb.g + (255 - rgb.g) * lighten;
+        b = rgb.b + (255 - rgb.b) * lighten;
+      } else if (darken) {
+        // Blend with black for darker variations
+        r = rgb.r * (1 - darken);
+        g = rgb.g * (1 - darken);
+        b = rgb.b * (1 - darken);
+      } else {
+        // Original color
+        r = rgb.r;
+        g = rgb.g;
+        b = rgb.b;
+      }
+      const isOriginal = name === 'Original';
+      addColor(name, rgbToHex(r, g, b), isOriginal);
     });
 
     // Add some hue variations
@@ -137,12 +161,6 @@ function App() {
     };
   };
 
-  const handleColorChange = (e) => {
-    const color = e.target.value;
-    setInputColor(color);
-    setSimilarColors(generateSimilarColors(color));
-  };
-
   const handleInputChange = (e) => {
     const input = e.target.value;
     setInputColor(input);
@@ -181,12 +199,7 @@ function App() {
         
         <div className="input-section">
           <div className="color-input-group">
-            <input
-              type="color"
-              value={inputColor}
-              onChange={handleColorChange}
-              className="color-picker"
-            />
+            <span className="input-icon">🎨</span>
             <input
               type="text"
               value={inputColor}

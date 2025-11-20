@@ -6,7 +6,9 @@ jest.mock('color-name-list', () => ({
     { name: 'red', hex: '#FF0000' },
     { name: 'blue', hex: '#0000FF' },
     { name: 'green', hex: '#00FF00' },
-    { name: 'coral', hex: '#FF7F50' }
+    { name: 'coral', hex: '#FF7F50' },
+    { name: 'black', hex: '#000000' },
+    { name: 'white', hex: '#FFFFFF' }
   ]
 }));
 
@@ -69,6 +71,138 @@ describe('UI Components', () => {
       expect(info.querySelector('.color-name')).toBeInTheDocument();
       expect(info.querySelector('.color-hex')).toBeInTheDocument();
     });
+  });
+});
+
+describe('Edge Cases - Black and White Colors', () => {
+  test('generates variations for black color', () => {
+    render(<App />);
+    const input = screen.getByRole('textbox');
+
+    fireEvent.change(input, { target: { value: '#000000' } });
+
+    const colorNames = Array.from(document.querySelectorAll('.color-name'))
+      .map(el => el.textContent);
+    const colorHexes = Array.from(document.querySelectorAll('.color-hex'))
+      .map(el => el.textContent);
+
+    // Should have Original label
+    expect(colorNames).toContain('Original');
+
+    // Should have lighter variations (not all black)
+    const lighterColors = colorHexes.filter(hex =>
+      hex !== '#000000' && parseInt(hex.slice(1), 16) > 0
+    );
+    expect(lighterColors.length).toBeGreaterThan(0);
+
+    // Original should be black
+    const originalIndex = colorNames.indexOf('Original');
+    expect(colorHexes[originalIndex]).toBe('#000000');
+  });
+
+  test('generates variations for white color', () => {
+    render(<App />);
+    const input = screen.getByRole('textbox');
+
+    fireEvent.change(input, { target: { value: '#ffffff' } });
+
+    const colorNames = Array.from(document.querySelectorAll('.color-name'))
+      .map(el => el.textContent);
+    const colorHexes = Array.from(document.querySelectorAll('.color-hex'))
+      .map(el => el.textContent.toLowerCase());
+
+    // Should have Original label
+    expect(colorNames).toContain('Original');
+
+    // Should have darker variations (not all white)
+    const darkerColors = colorHexes.filter(hex =>
+      hex !== '#ffffff' && parseInt(hex.slice(1), 16) < parseInt('ffffff', 16)
+    );
+    expect(darkerColors.length).toBeGreaterThan(0);
+
+    // Original should be white
+    const originalIndex = colorNames.indexOf('Original');
+    expect(colorHexes[originalIndex]).toBe('#ffffff');
+  });
+
+  test('black generates gray tones for lighter variations', () => {
+    render(<App />);
+    const input = screen.getByRole('textbox');
+
+    fireEvent.change(input, { target: { value: '#000000' } });
+
+    const colorNames = Array.from(document.querySelectorAll('.color-name'))
+      .map(el => el.textContent);
+    const colorHexes = Array.from(document.querySelectorAll('.color-hex'))
+      .map(el => el.textContent);
+
+    // Check if Lighter variation exists and is not black
+    const lighterIndex = colorNames.indexOf('Lighter');
+    if (lighterIndex !== -1) {
+      const lighterHex = colorHexes[lighterIndex];
+      expect(lighterHex).not.toBe('#000000');
+      // Should be a gray (all RGB values equal and greater than 0)
+      const r = parseInt(lighterHex.slice(1, 3), 16);
+      const g = parseInt(lighterHex.slice(3, 5), 16);
+      const b = parseInt(lighterHex.slice(5, 7), 16);
+      expect(r).toBeGreaterThan(0);
+      expect(r).toBe(g);
+      expect(g).toBe(b);
+    }
+  });
+
+  test('white generates gray tones for darker variations', () => {
+    render(<App />);
+    const input = screen.getByRole('textbox');
+
+    fireEvent.change(input, { target: { value: '#FFFFFF' } });
+
+    const colorNames = Array.from(document.querySelectorAll('.color-name'))
+      .map(el => el.textContent);
+    const colorHexes = Array.from(document.querySelectorAll('.color-hex'))
+      .map(el => el.textContent.toUpperCase());
+
+    // Check if Dark variation exists and is not white
+    const darkIndex = colorNames.indexOf('Dark');
+    if (darkIndex !== -1) {
+      const darkHex = colorHexes[darkIndex];
+      expect(darkHex).not.toBe('#FFFFFF');
+      // Should be a gray (all RGB values equal and less than 255)
+      const r = parseInt(darkHex.slice(1, 3), 16);
+      const g = parseInt(darkHex.slice(3, 5), 16);
+      const b = parseInt(darkHex.slice(5, 7), 16);
+      expect(r).toBeLessThan(255);
+      expect(r).toBe(g);
+      expect(g).toBe(b);
+    }
+  });
+
+  test('black color by name generates proper variations', () => {
+    render(<App />);
+    const input = screen.getByRole('textbox');
+
+    fireEvent.change(input, { target: { value: 'black' } });
+
+    const colorCards = document.querySelectorAll('.color-card');
+    expect(colorCards.length).toBeGreaterThan(0);
+
+    const colorNames = Array.from(document.querySelectorAll('.color-name'))
+      .map(el => el.textContent);
+    expect(colorNames).toContain('Original');
+  });
+
+  test('white color by name generates proper variations', () => {
+    render(<App />);
+    const input = screen.getByRole('textbox');
+
+    fireEvent.change(input, { target: { value: 'white' } });
+
+    const colorCards = document.querySelectorAll('.color-card');
+    expect(colorCards.length).toBeGreaterThan(0);
+
+    const colorNames = Array.from(document.querySelectorAll('.color-name'))
+      .map(el => el.textContent);
+    expect(colorNames).toContain('Original');
   });
 });
 
